@@ -3,32 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visualización de Calificaciones</title>
+  <title>Gráficos de Calificaciones</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    :root {
+      color-scheme: light dark;
+    }
     body {
-      font-family: system-ui, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
       background-color: #000;
       color: #fff;
       margin: 0;
-      padding: 2rem;
+      padding: 2rem 1.5rem;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    h2 {
-      font-size: 1.75rem;
+    h1 {
+      font-size: 2rem;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
-    p.intro {
-      font-size: 0.95rem;
-      color: #ccc;
-      max-width: 600px;
-      text-align: center;
+    .subtitle {
+      font-size: 1rem;
+      color: #aaa;
       margin-bottom: 1.5rem;
+      text-align: center;
+      max-width: 600px;
+    }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      max-width: 720px;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
     }
 
     .buttons {
@@ -39,54 +53,85 @@
     }
 
     button {
-      background: #859900;
+      background: #007aff;
       color: white;
       border: none;
-      border-radius: 8px;
-      padding: 0.5rem 1rem;
-      font-weight: bold;
+      border-radius: 12px;
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: all 0.2s ease;
     }
 
     button:hover {
-      background: #6c7d00;
+      background: #005fbd;
     }
 
     canvas {
       max-width: 100%;
       width: 100%;
       max-height: 400px;
+      border-radius: 8px;
     }
 
     .footer {
-      margin-top: 2rem;
+      margin-top: 3rem;
       font-size: 0.75rem;
-      color: #aaa;
+      color: #999;
       text-align: center;
+    }
+
+    .chart-label {
+      font-size: 1rem;
+      margin-top: 1.5rem;
+      font-weight: 500;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <h2>Visualización de Datos de Calificaciones</h2>
-  <p class="intro">
-    Tenemos las siguientes 50 calificaciones de un examen. ¡Vamos a explorarlas!
-  </p>
+  <h1>Gráficos de Calificaciones</h1>
+  <p class="subtitle">Explora cómo diferentes representaciones visuales pueden mostrar los mismos datos desde ángulos distintos.</p>
+
+  <div class="info-box">
+    <strong>¿Qué datos se están usando?</strong><br />
+    Un conjunto de 50 calificaciones reales de un examen (enteros del 59 al 96). <br><br>
+
+    <strong>¿Para qué sirven estos gráficos?</strong><br />
+    - <strong>Histograma:</strong> Para ver la distribución general de los datos por intervalos.<br />
+    - <strong>Polígono de frecuencias:</strong> Para observar tendencias con líneas suaves.<br />
+    - <strong>Ojiva:</strong> Para analizar acumulación de frecuencias. Ideal para percentiles.<br />
+    - <strong>Gráfico de pastel:</strong> Para ver proporciones visuales entre categorías.<br><br>
+
+    <strong>¿Cuándo usar cada uno?</strong><br />
+    - Usa el <em>histograma</em> si te interesa la forma y simetría de la distribución.<br />
+    - Usa el <em>polígono</em> si quieres comparar distribuciones fácilmente.<br />
+    - Usa la <em>ojiva</em> si te importa saber qué porcentaje está por debajo de cierto valor.<br />
+    - Usa el <em>pastel</em> si necesitas destacar proporciones de cada grupo.<br>
+  </div>
 
   <div class="buttons">
     <button onclick="generateChart('histogram')">Histograma</button>
-    <button onclick="generateChart('polygon')">Polígono de Frecuencias</button>
+    <button onclick="generateChart('polygon')">Polígono</button>
     <button onclick="generateChart('ogive')">Ojiva</button>
-    <button onclick="generateChart('pie')">Gráfico de Pastel</button>
+    <button onclick="generateChart('pie')">Pastel</button>
   </div>
 
   <canvas id="freq-chart" width="600" height="400"></canvas>
+  <div class="chart-label" id="chart-description">Selecciona un tipo de gráfico para comenzar.</div>
 
   <div class="footer">Hecho por Jorge Enrique</div>
 
   <script>
     const gradesData = [68, 84, 75, 82, 68, 90, 62, 88, 76, 93, 73, 79, 88, 73, 60, 93, 71, 59, 85, 75, 61, 65, 75, 87, 74, 62, 95, 78, 63, 72, 66, 78, 82, 75, 94, 77, 69, 74, 68, 60, 96, 78, 89, 61, 75, 95, 60, 79, 83, 71];
     let currentChart = null;
+
+    const descriptions = {
+      histogram: "Histograma: muestra la cantidad de calificaciones en cada rango.",
+      polygon: "Polígono: conecta las frecuencias con líneas para mostrar tendencias.",
+      ogive: "Ojiva: curva que acumula la frecuencia para ver percentiles y acumulados.",
+      pie: "Pastel: muestra la proporción de cada rango de calificaciones."
+    };
 
     function getFrequencyDistribution(data) {
       const classes = { "50-59": 0, "60-69": 0, "70-79": 0, "80-89": 0, "90-99": 0 };
@@ -120,12 +165,12 @@
         data: {
           labels: type === "ogive" ? ["49", ...dist.labels.map(l => l.split("-")[1])] : dist.labels,
           datasets: [{
-            label: type === "ogive" ? "Ojiva (Frecuencia acumulada)" : "Frecuencia",
+            label: type === "ogive" ? "Frecuencia acumulada" : "Frecuencia",
             data: type === "ogive" ? [0, ...dist.cumulative] : dist.frequencies,
             backgroundColor: type === "pie"
               ? ['#2aa198', '#268bd2', '#859900', '#cb4b16', '#d33682']
               : 'rgba(75, 192, 192, 0.6)',
-            borderColor: type === "polygon" || type === "ogive" ? "#fff" : undefined,
+            borderColor: type !== "pie" ? "#fff" : undefined,
             borderWidth: 2,
             fill: type !== "pie"
           }]
@@ -133,11 +178,12 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: (type !== "pie") ? { y: { beginAtZero: true } } : {}
+          scales: type === "pie" ? {} : { y: { beginAtZero: true } }
         }
       };
 
       currentChart = new Chart(ctx, chartConfig);
+      document.getElementById("chart-description").textContent = descriptions[type];
     }
   </script>
 </body>
